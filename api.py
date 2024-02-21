@@ -1,3 +1,5 @@
+""" All things API """
+
 import requests
 import json
 
