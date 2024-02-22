@@ -1,39 +1,57 @@
 ''' All things PyQt6'''
 
 import sys
-
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenu, QWidget, QMenuBar
+from PyQt6.QtCharts import QChart, QCandlestickSeries, QValueAxis, QBarCategoryAxis
+from PyQt6.QtCore import QDateTime,  Qt
+from PyQt6.QtGui import QAction, QIcon, QColor
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QMenu, QPushButton, QStyle, QScrollBar
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Main window style
+        self.setWindowTitle("Quanta Falsificado")
         self.resize(800, 500)
-        self.setWindowTitle("Context Menu")
 
-        widget  = QWidget()
-        label1 = QLabel("This is a QLabel in the central widget", self)
-        label2 = QLabel("This is another one.", self)
-
-        # Set up layout of the main window
-        label1.move(30, 20)
-
+        # Menu bar
         menubar = QMenuBar()
-        file_menu = menubar.addMenu("File")
+        menubar.setStyleSheet('background-color:#2F234C;')
+        # File menu in menubar
+        file_menu = menubar.addMenu(QIcon("SP_TrashIcon"), "File")
+
+        # Exit action with shortcut "Space" for temporary convenience
         exit_action = QAction("Exit", self)
-        exit_action.setShortcut("Ctrl+Q")
+        exit_action.setShortcut("Space")
         exit_action.triggered.connect(sys.exit)
         file_menu.addAction(exit_action)
 
 
-        self.setCentralWidget(widget)
+        btn = QPushButton("Button")
+        pixmapi = QStyle.StandardPixmap.SP_TrashIcon
+        icon = self.style().standardIcon(pixmapi)
+        btn.setIcon(icon)
+
+        # EUR/USD chart (kind of)
+        acmeSeries = QCandlestickSeries()
+        acmeSeries.setName("Acme Ltd")
+        acmeSeries.setIncreasingColor(QColor("green"))
+        acmeSeries.setDecreasingColor(QColor("red"))   
+
+        # chart instance
+        chart = QChart()
+        chart.addSeries(acmeSeries)
+        chart.setTitle("Acme Ltd. Historical Data (July 2015)")
+        chart.createDefaultAxes()
+        axisX = QValueAxis()
+        axisY = QValueAxis()
+        axisY.setMax(axisY.max() * 1.01)
+        axisY.setMin(axisY.min() * 0.99)
+        
+
+        # Set menubar as such
         self.setMenuBar(menubar)
-        self.setWindowTitle("Quanta Falsificado")
-
-
 
 app = QApplication(sys.argv)
 
