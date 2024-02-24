@@ -1,10 +1,18 @@
 ''' All things PyQt6'''
 
-import sys
-from PyQt6.QtCharts import QChart, QCandlestickSeries, QValueAxis, QBarCategoryAxis
-from PyQt6.QtCore import QDateTime,  Qt
-from PyQt6.QtGui import QAction, QIcon, QColor
-from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QMenu, QPushButton, QStyle, QScrollBar
+import sys, os
+
+import pyqtgraph as pg
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton,
+    QToolBar, QLabel, QListWidget, QSplitter, QSizePolicy, QComboBox, QMenu, QToolTip,
+    QDockWidget, QDialog, QMenuBar
+)
+from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor, QAction
+from PyQt6.QtCore import Qt, QSize
+import pyqtgraph as pqtg
+from datetime import datetime
+import numpy as np
 
 
 class MainWindow(QMainWindow):
@@ -27,28 +35,15 @@ class MainWindow(QMainWindow):
         exit_action.triggered.connect(sys.exit)
         file_menu.addAction(exit_action)
 
+        pw = pg.plot(xVals, yVals, pen='r')  # plot x vs y in red
+        pw.plot(xVals, yVals2, pen='b')
 
-        btn = QPushButton("Button")
-        pixmapi = QStyle.StandardPixmap.SP_TrashIcon
-        icon = self.style().standardIcon(pixmapi)
-        btn.setIcon(icon)
+        win = pg.GraphicsLayoutWidget()  # Automatically generates grids with multiple items
+        win.addPlot(data1, row=0, col=0)
+        win.addPlot(data2, row=0, col=1)
+        win.addPlot(data3, row=1, col=0, colspan=2)
 
-        # EUR/USD chart (kind of)
-        acmeSeries = QCandlestickSeries()
-        acmeSeries.setName("Acme Ltd")
-        acmeSeries.setIncreasingColor(QColor("green"))
-        acmeSeries.setDecreasingColor(QColor("red"))   
-
-        # chart instance
-        chart = QChart()
-        chart.addSeries(acmeSeries)
-        chart.setTitle("Acme Ltd. Historical Data (July 2015)")
-        chart.createDefaultAxes()
-        axisX = QValueAxis()
-        axisY = QValueAxis()
-        axisY.setMax(axisY.max() * 1.01)
-        axisY.setMin(axisY.min() * 0.99)
-        
+        pg.show(imageData)  # imageData must be a numpy array with 2 to 4 dimensions
 
         # Set menubar as such
         self.setMenuBar(menubar)
