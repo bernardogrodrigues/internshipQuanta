@@ -1,7 +1,5 @@
-""" All things API """
-
 import requests
-import json
+from datetime import datetime
 
 APIKEY = "H56D8PS4NZ92U0R5"
 
@@ -19,6 +17,7 @@ def getTimeSeries(fx_pair: str, time_frame: str = "daily", output: str = "compac
   '''
   # Build URL
   base_url = "https://www.alphavantage.co/query?"
+
   # Linking function params to the  url parameters
   tf = time_frame.upper()
   from_currency = fx_pair.upper()[:3]
@@ -28,8 +27,22 @@ def getTimeSeries(fx_pair: str, time_frame: str = "daily", output: str = "compac
   # Requesting data from api
   r = requests.get(base_url + api_params)
 
-  # delievering json data for requested time frame
-  return r.json()[f"Time Series FX ({tf[0]+tf[1:].lower()})"]
+  # [{'date': datetime, 'open': float, 'high': float, 'low': float, 'close': float}, ...]
+  data: list[dict] = []
+
+  for date, values in r.json()[f"Time Series FX ({tf[0]+tf[1:].lower()})"].items():
+    data.append({
+        # Convert date from string to datetime object for easier handling in plots
+        'date': datetime.strptime(date, '%Y-%m-%d'),
+        'open': float(values['1. open']),
+        'high': float(values['2. high']),
+        'low': float(values['3. low']),
+        'close': float(values['4. close'])#,
+        #'volume': float(values['5. volume'])
+    })
+
+  # delievering ohlc data for requested time frame as a list of dicts
+  return data
 
 # Used as confirmation that function is working correctly
-print(json.dumps(getTimeSeries("EURUSD"), indent=2))
+#print(getTimeSeries("EURUSD"))
