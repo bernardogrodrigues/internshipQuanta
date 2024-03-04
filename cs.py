@@ -1,7 +1,6 @@
 import pyqtgraph as pg
 from pyqtgraph import QtCore, QtGui
 from datetime import datetime
-from api import getTimeSeries
 
 class CandlestickItem(pg.GraphicsObject):
     def __init__(self, data: list):
@@ -30,8 +29,8 @@ class CandlestickItem(pg.GraphicsObject):
                 p.setPen(pg.mkPen("r"))
                 p.setBrush(pg.mkBrush("r"))
             else: #2
-                p.setPen(pg.mkPen("b"))
-                p.setBrush(pg.mkBrush("b"))
+                p.setPen(pg.mkPen("g"))
+                p.setBrush(pg.mkBrush("g"))
 
             # Draw the wick (vertical line)
             p.drawLine(QtCore.QPointF(entry['date'].timestamp(), min_val), QtCore.QPointF(entry['date'].timestamp(), max_val))
