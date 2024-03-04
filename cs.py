@@ -12,6 +12,7 @@ class CandlestickItem(pg.GraphicsObject):
     def generatePicture(self):
         ## pre-computing a QPicture object
         self.picture = QtGui.QPicture()
+        p = QtGui.QPainter(self.picture)
 
         # Calculate rectangle width based on date values
         # Get minimum value from 3 iterations to throw away faulty width values (Friday-Monday, holidays, etc)
@@ -20,18 +21,17 @@ class CandlestickItem(pg.GraphicsObject):
             possible_width = (self.data[i]['date'].timestamp() - self.data[i+1]['date'].timestamp()) * 0.75 # avoids adjacent candlesticks
             if possible_width < width:
                 width = possible_width
-
-        p = QtGui.QPainter(self.picture)
+        
         for entry in self.data:
-          open_val, close_val, min_val, max_val = entry['open'], entry['close'], entry['low'], entry['high']
+            open_val, close_val, min_val, max_val = entry['open'], entry['close'], entry['low'], entry['high']
           
-          # set green pen for bullish candle and red pen for bearish candle 
-          if open_val > close_val:
-            p.setPen(pg.mkPen("red"))
-            p.setBrush(pg.mkBrush("red"))
-          else:
-            p.setPen(pg.mkPen("g"))
-            p.setBrush(pg.mkBrush("g"))
+          # set green pen for bearish candle (1) and red pen for bullish candle (2)
+            if open_val > close_val: #1
+                p.setPen(pg.mkPen("r"))
+                p.setBrush(pg.mkBrush("r"))
+            else: #2
+                p.setPen(pg.mkPen("b"))
+                p.setBrush(pg.mkBrush("b"))
 
             # Draw the wick (vertical line)
             p.drawLine(QtCore.QPointF(entry['date'].timestamp(), min_val), QtCore.QPointF(entry['date'].timestamp(), max_val))
@@ -47,12 +47,23 @@ class CandlestickItem(pg.GraphicsObject):
     def boundingRect(self):
         return QtCore.QRectF(self.picture.boundingRect())
 
-data = getTimeSeries("EURUSD")
+
+################################### DEBUGGING PURPOSES ONLY ####################################
+#                              Not used in other  parts of code
+
+data = [
+   {'date': datetime.strptime('2014-7-31','%Y-%m-%d'), 'open': 568, 'close': 570, 'low': 300, 'high': 590},
+   {'date': datetime.strptime('2014-8-1','%Y-%m-%d'), 'open': 570, 'close': 510, 'low': 350, 'high': 690},
+   {'date': datetime.strptime('2014-8-2','%Y-%m-%d'), 'open': 510, 'close': 490, 'low': 460, 'high': 568},
+   {'date': datetime.strptime('2014-8-3','%Y-%m-%d'), 'open': 490, 'close': 769, 'low': 200, 'high': 810},
+   {'date': datetime.strptime('2014-8-4','%Y-%m-%d'), 'open': 769, 'close': 290, 'low': 234, 'high': 786},
+   {'date': datetime.strptime('2014-8-5','%Y-%m-%d'), 'open': 290, 'close': 544, 'low': 269, 'high': 568},
+]
 
 item = CandlestickItem(data)
 plt = pg.plot()
 plt.addItem(item)
-plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
+plt.setWindowTitle('Very real price thingy')
 
 if __name__ == '__main__':
     pg.exec()
