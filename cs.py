@@ -1,6 +1,7 @@
 import pyqtgraph as pg
 from pyqtgraph import QtCore, QtGui
 from datetime import datetime
+from api import getTimeSeries
 
 class CandlestickItem(pg.GraphicsObject):
     def __init__(self, data: list):
@@ -45,24 +46,11 @@ class CandlestickItem(pg.GraphicsObject):
     
     def boundingRect(self):
         return QtCore.QRectF(self.picture.boundingRect())
-
-
-################################### DEBUGGING PURPOSES ONLY ####################################
-#                              Not used in other  parts of code
-
-data = [
-   {'date': datetime.strptime('2014-7-31','%Y-%m-%d'), 'open': 568, 'close': 570, 'low': 300, 'high': 590},
-   {'date': datetime.strptime('2014-8-1','%Y-%m-%d'), 'open': 570, 'close': 510, 'low': 350, 'high': 690},
-   {'date': datetime.strptime('2014-8-2','%Y-%m-%d'), 'open': 510, 'close': 490, 'low': 460, 'high': 568},
-   {'date': datetime.strptime('2014-8-3','%Y-%m-%d'), 'open': 490, 'close': 769, 'low': 200, 'high': 810},
-   {'date': datetime.strptime('2014-8-4','%Y-%m-%d'), 'open': 769, 'close': 290, 'low': 234, 'high': 786},
-   {'date': datetime.strptime('2014-8-5','%Y-%m-%d'), 'open': 290, 'close': 544, 'low': 269, 'high': 568},
-]
-
-item = CandlestickItem(data)
+    
+item = CandlestickItem(getTimeSeries("EURUSD"))
 plt = pg.plot()
 plt.addItem(item)
-plt.setWindowTitle('Very real price thingy')
+plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
 
 if __name__ == '__main__':
     pg.exec()
