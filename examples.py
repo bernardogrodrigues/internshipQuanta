@@ -49,10 +49,10 @@ data = [  ## fields are (time, open, close, min, max).
     (5., 15, 9, 8, 22),
     (6., 9, 15, 8, 16),
 ]
-item = CandlestickItem(data)
-plt = pg.plot()
-plt.addItem(item)
-plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
+# item = CandlestickItem(data)
+# plt = pg.plot()
+# plt.addItem(item)
+# plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
 
-if __name__ == '__main__':
-    pg.exec()
+# if __name__ == '__main__':
+#     pg.exec()

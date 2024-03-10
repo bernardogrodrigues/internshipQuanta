@@ -46,11 +46,3 @@ class CandlestickItem(pg.GraphicsObject):
     
     def boundingRect(self):
         return QtCore.QRectF(self.picture.boundingRect())
-    
-item = CandlestickItem(getTimeSeries("EURUSD"))
-plt = pg.plot()
-plt.addItem(item)
-plt.setWindowTitle('pyqtgraph example: customGraphicsItem')
-
-if __name__ == '__main__':
-    pg.exec()
