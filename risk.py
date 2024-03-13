@@ -29,5 +29,3 @@ def periodic_volatility(data, resolution = 10):
   close_data = [candle["close"] for candle in data]
   moving_stdev =  [np.std(close_data[i*resolution:(i+1)*resolution]) for i in range(len(close_data)//resolution)]
   
-
-periodic_volatility(getTimeSeries("EURUSD", output="full"))

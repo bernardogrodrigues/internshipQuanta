@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 import json
 
-APIKEY = "H56D8PS4NZ92U0R5"
+APIKEY = "7QE001W0RV3REU6S"
 
 def getTimeSeries(fx_pair: str, time_frame: str = "daily", output: str = "compact") -> dict[str,dict]:
   '''
