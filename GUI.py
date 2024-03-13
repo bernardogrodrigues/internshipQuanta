@@ -12,6 +12,7 @@ import pyqtgraph as pqtg
 from datetime import datetime
 import numpy as np
 from cs import CandlestickItem
+from risk import VolatilityItem
 
 from api import getTimeSeries
 
@@ -63,7 +64,7 @@ class GUI(QWidget):
         self.main_widgets["main_window"].setCentralWidget(self.main_widgets["central_widget"])
 
         # Styling charts
-        graphs = [self.main_widgets["ohlc_chart"]]
+        graphs = [self.main_widgets["ohlc_chart"], self.main_widgets["risk_chart"]]
         
         # Customize axis labels and colors
         label_style = {'color': 'purple', 'font-size': '12px', 'font-weight': 'bold'}
@@ -75,7 +76,7 @@ class GUI(QWidget):
 
             # Set y axis label and pen
             y_axis = graph.getAxis('left')
-            y_axis.setLabel("Currency pair price" if graph is self.main_widgets["ohlc_chart"] else "Volatilty Periods", **label_style)
+            y_axis.setLabel("Currency pair price" if graph is self.main_widgets["ohlc_chart"] else "Periodic Volatility", **label_style)
             y_axis.setPen(LIGHT_COLOR)
 
             # Set x axis as a date axis item, set label, set pen, but hide x axis if it is the top graph
@@ -87,19 +88,28 @@ class GUI(QWidget):
                 x_axis.setLabel('Date', **label_style)
                 x_axis.setPen(axis_color)
             
-            # Set the height of the ohlc graph
-            self.main_widgets["ohlc_chart"].setFixedHeight(400)
+        # Set the height of the ohlc graph
+        self.main_widgets["risk_chart"].setFixedHeight(200)
 
-            self.y_value_label_forex = pg.TextItem(text='', color=(0,255,0), anchor=(1, 0))
+        # Link the views of OHLC and Volume graphs
+        ohlc_viewbox = self.main_widgets["ohlc_chart"].getViewBox()
+        risk_viewbox = self.main_widgets["risk_chart"].getViewBox()
+        ohlc_viewbox.setXLink(risk_viewbox)
 
-            self.main_widgets["ohlc_chart"].addItem(self.y_value_label_forex, ignoreBounds = True)
+        # Forex price y_axis
+        self.y_value_label_forex = pg.TextItem(text='Price', color=(0,255,0), anchor=(1, 0))
+        self.main_widgets["ohlc_chart"].addItem(self.y_value_label_forex, ignoreBounds = True)
 
-            self.main_widgets["main_window"].resize(1300,700)
-            ####BUTTONS####
-            for button in self.buttons:
-                self.setupButton(button, self.buttons[button][1])
+        # risk price y_axis
+        self.y_value_label_risk = pg.TextItem(text='Volatility', color=(0,255,0), anchor=(1, 0))
+        self.main_widgets["risk_chart"].addItem(self.y_value_label_risk, ignoreBounds = True)
 
-            self.setupLayout()
+        self.main_widgets["main_window"].resize(1300,700)
+        ####BUTTONS####
+        for button in self.buttons:
+            self.setupButton(button, self.buttons[button][1])
+
+        self.setupLayout()
             
     def setupLayout(self) -> None:
         """
@@ -126,6 +136,8 @@ class GUI(QWidget):
 
         # Add the main splitter to the main layout
         layout.addWidget(self.main_widgets["ohlc_chart"])
+        # Add the main splitter to the main layout
+        layout.addWidget(self.main_widgets["risk_chart"])
 
         # Add buttons to GUI
         TOOLBAR_ITEMS = []
@@ -217,7 +229,7 @@ class GUI(QWidget):
         (totally not copypasted)
         """
         # Obtain ohlc data by api query
-        ohlc_data = getTimeSeries(symbol, 'DAILY', output = "full")
+        ohlc_data = getTimeSeries(symbol, 'DAILY', output = "compact")
         
         if ohlc_data is not None:
 
@@ -228,10 +240,10 @@ class GUI(QWidget):
             # Add the CandlestickItem to the plot widget
             self.main_widgets["ohlc_chart"].addItem(candlestick_item)
 
-            # # RISK(Volatility) GRAPH
-            # # Extract volatility data and convert 'date' values to numerical
-            # volume_item = VolumeItem(ohlc_data)
-            # self.main_widgets["plot_volume_widget"].addItem(volume_item)
+            # RISK(Volatility) GRAPH
+            # Extract volatility data and convert 'date' values to numerical
+            risk_item = VolatilityItem(ohlc_data)
+            self.main_widgets["risk_chart"].addItem(risk_item)
 
     def show(self):
         self.main_widgets["main_window"].show()

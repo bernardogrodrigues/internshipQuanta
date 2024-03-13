@@ -1,7 +1,6 @@
 import pyqtgraph as pg
 from pyqtgraph import QtCore, QtGui
 from datetime import datetime
-from api import getTimeSeries
 
 class CandlestickItem(pg.GraphicsObject):
     def __init__(self, data: list):
