@@ -6,6 +6,15 @@ import statistics as stat
 from PyQt6.QtGui import QColor
 
 def volatility(data):
+    """
+    Calculate the standard deviation of a dataset and divide it by last data value
+
+    Params:
+        data (list): List of dictionaries containing OHLC data and timestamps: [{'date': datetime, 'open': float, 'high': float, 'low': float, 'close': float}, ...]
+
+    Returns:
+        (float): standard deviation / last closing price        
+    """
     #list of closing prices
     close_data = [candle["close"] for candle in data]
     stdev = np.std(close_data)
@@ -13,7 +22,7 @@ def volatility(data):
 
 def colormap(num, min, max):
     """
-    This function returns a color mapped to the given number based on its position between the minimum and maximum values.
+    Returns a color mapped by a given number based on its position between the minimum and maximum values.
     Made for volatility (green = low volatility, red = high volatility)
     
     Params:
@@ -24,19 +33,48 @@ def colormap(num, min, max):
     Returns:
         QColor()
     """
+    # Maps hue value based on some very intricate formulas
     hue_val = int(120 - (num-min)*120/(max-min))
     return  QColor().fromHsl(hue_val, 128, 128)
   
 # def periodic_volatility(data, resolution = 5):
+#     """
+#     Periodically calculates the volatility over a specified time period.
+#     Same volaility for every canlde inside the same step
+#          
+#     Params:
+#          data (list): List of dictionaries containing OHLC data and timestamps: [{'date': datetime, 'open': float, 'high': float, 'low': float, 'close': float}, ...]
+#          resolution (int): Number of closing prices per step
+#
+#     Returns:
+#         ([float]) : List of average volatilities per time period
+#     """
+#
+#     # list of close values
 #     close_data = [candle["close"] for candle in data]
+#
+#     # list of standard deviation values for each step (resolution) through the data
 #     moving_stdev = [stat.stdev(close_data[i:i+resolution]) for i in range(0, (len(close_data)), resolution)]
+#
+#     # extends the data to make sure that there are enough values for each candle
 #     normalized_stdev = []
 #     for val in moving_stdev:
 #         normalized_stdev += [val]*resolution
 #     return normalized_stdev
 
 def periodic_volatility(data, resolution = 5):
+    """
+    Periodically calculates the volatility over a specified time period.
+    Each candle get its own volatility
+
+    Params:
+        data (list): List of dictionaries containing OHLC data and timestamps: [{'date': datetime, 'open': float, 'high': float, 'low': float, 'close': float}, ...]
+        resolution (int): Number of previous candles to consider in each standard deviation calculation
+    """
+    # list of closing prices
     close_data = [candle["close"] for candle in data]
+
+    # calculates the standard deviation for each candle based on n previous candles (n = resolution)
     moving_stdev = [stat.stdev(close_data[i:i+resolution]) for i in range(len(close_data)-resolution)]
     return moving_stdev
 
@@ -46,7 +84,7 @@ class VolatilityItem(pg.GraphicsObject):
     """
     def __init__(self, data: list):
         """
-        Initializes the VolatItem
+        Initializes the VolatilityItem
 
         Parameters:
             data (list): List of dictionaries containing OHLC data and timestamps: [{'date': datetime, 'open': float, 'high': float, 'low': float, 'close': float}, ...]
@@ -89,7 +127,7 @@ class VolatilityItem(pg.GraphicsObject):
             p.setPen(pg.mkPen(bar_color))
             p.setBrush(pg.mkBrush(bar_color))
 
-            p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0.5, width, stdev_val))
+            p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0, width, stdev_val))
         p.end()
 
     def paint(self, p, *args):

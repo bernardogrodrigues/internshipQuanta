@@ -17,13 +17,14 @@ from risk import VolatilityItem
 from api import getTimeSeries
 
 BG_COLOR = "#151820" # dark background's color 
-BG_COLOR_GRAPH = "#151820"
 
 LIGHT_COLOR = "#8c4ee9" # lighter color of theme
 
 class GUI(QWidget):
     '''
     Quanta da Wish Risk Analysis GUI application.
+    (Disclaimer: "risk" and "volatility" are highly correlated terms in this project,
+    often used interchangeably; same for "graph" and "chart" - I know it's confusing.)
 
     Attributes:
         main_widgets (dict): Dictionary containing main widgets.
@@ -45,7 +46,7 @@ class GUI(QWidget):
                             padding-left: 0px; \
                             padding-right: 60px;")
 
-        # Buttons for plotting charts #key = button string, tuple[0] button object, tuple[1] = action
+        # Buttons for plotting charts and clearing plot {"name":(QButton("text"), action)}
         self.buttons = {"EUR/USD": (QPushButton("EUR/USD"), lambda: self.plotOHLCData("EURUSD")),
                         "GBP/USD": (QPushButton("GBP/JPY"), lambda: self.plotOHLCData("GBPJPY")),
                         "EUR/JPY": (QPushButton("EUR/JPY"), lambda: self.plotOHLCData("EURJPY")),
@@ -71,8 +72,9 @@ class GUI(QWidget):
         label_style = {'color': 'purple', 'font-size': '12px', 'font-weight': 'bold'}
         axis_color = LIGHT_COLOR
         
+        # set up axis
         for graph in graphs:
-            graph.setBackground(BG_COLOR_GRAPH)
+            graph.setBackground(BG_COLOR)
             graph.showGrid(x=True, y=True, alpha=0.5)
 
             # Set y axis label and pen
@@ -89,10 +91,10 @@ class GUI(QWidget):
                 x_axis.setLabel('Date', **label_style)
                 x_axis.setPen(axis_color)
             
-        # Set the height of the ohlc graph
+        # Set the height of the risk chart
         self.main_widgets["risk_chart"].setFixedHeight(200)
 
-        # Link the views of OHLC and Volume graphs
+        # Link the views of OHLC and Risk graphs
         ohlc_viewbox = self.main_widgets["ohlc_chart"].getViewBox()
         risk_viewbox = self.main_widgets["risk_chart"].getViewBox()
         ohlc_viewbox.setXLink(risk_viewbox)
@@ -101,7 +103,7 @@ class GUI(QWidget):
         self.y_value_label_forex = pg.TextItem(text='Price', color=(0,255,0), anchor=(1, 0))
         self.main_widgets["ohlc_chart"].addItem(self.y_value_label_forex, ignoreBounds = True)
 
-        # risk price y_axis
+        # Risk y_axis
         self.y_value_label_risk = pg.TextItem(text='Volatility', color=(0,255,0), anchor=(1, 0))
         self.main_widgets["risk_chart"].addItem(self.y_value_label_risk, ignoreBounds = True)
 
@@ -119,6 +121,7 @@ class GUI(QWidget):
         """
         Sets up the layout for the central widget, including the main vertical layout,
         toolbar, search bar, search results, portfolio list, and plot graph.
+        (Disclaimer: this function is not entirely my responsability)
 
         The layout structure consists of:
             1. Main Vertical Layout: Vertical layout for organizing various components.
@@ -156,6 +159,7 @@ class GUI(QWidget):
     def boxUpWidgetsVertically(self, widgets: list) -> QWidget:
         """
         Boxes up a list of widgets vertically within a QWidget.
+        (D.: same thing as last one)
 
         Parameters:
             widgets (list): List of widgets to be organized vertically.
@@ -168,6 +172,7 @@ class GUI(QWidget):
         container = QWidget()
         container_layout = QVBoxLayout(container)
 
+        # Add widgets to layout container
         for widget in widgets:
             container_layout.addWidget(widget)
 
@@ -176,15 +181,11 @@ class GUI(QWidget):
     def setupButton(self, button_key: str, action: callable, l_padding: int = 0, r_padding: int = 0) -> None:
         """
         Customizes button object according to:
-            - Icon
-            - Tooltip description
             - Action it entails
             - Some padding
         
         Parameters:
             - button_key (str): button name used to access (as a key) self.buttons dictionary attribute
-            - icon (QIcon): button icon
-            - description (str): button tooltip description
             - action (function): function called upon pressing the button
             - l_padding / r_padding (int | float): button padding
 
@@ -201,27 +202,7 @@ class GUI(QWidget):
                 border: none;
                 font-size: 130 px;
             }}
-            QPushButton:hover {{
-                background: {"rgba(180, 180, 255, 255)"};
-                border: 3px solid {"rgba(180, 180, 255, 255)"};
-                border-radius: 15px;
-                padding: 0;
-            }}
-            QPushButton::pressed {{
-                background: {"rgba(180, 180, 255, 255)"};
-                border: 3px solid {"rgba(180, 180, 255, 255)"};
-                border-radius: 15px;
-            }}
-            QToolTip {{
-                background-color: #151820; 
-                color: purple; 
-                border: 1px solid #151820;
-            }}
-        """)
-
-        # Set Icon       
-        #self.buttons[button_key].setIcon(icon)
-        #self.buttons[button_key].setIconSize(pg.Qt.QtCore.QSize(40, 40))  
+        """) 
 
         # Set function called upon clicking     
         self.buttons[button_key][0].clicked.connect(action)
@@ -233,7 +214,7 @@ class GUI(QWidget):
         (totally not copypasted)
         """
         # Obtain ohlc data by api query
-        ohlc_data = getTimeSeries(symbol, 'DAILY', output = "compact")
+        ohlc_data = getTimeSeries(symbol, 'DAILY', output = "full")
         
         if ohlc_data is not None:
             # OHLC GRAPH

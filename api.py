@@ -44,6 +44,3 @@ def getTimeSeries(fx_pair: str, time_frame: str = "daily", output: str = "compac
 
   # delievering ohlc data for requested time frame as a list of dicts
   return data
-
-# Used as confirmation that function is working correctly
-#print(getTimeSeries("EURUSD"))
