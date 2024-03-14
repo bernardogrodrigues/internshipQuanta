@@ -48,7 +48,8 @@ class GUI(QWidget):
         # Buttons for plotting charts #key = button string, tuple[0] button object, tuple[1] = action
         self.buttons = {"EUR/USD": (QPushButton("EUR/USD"), lambda: self.plotOHLCData("EURUSD")),
                         "GBP/USD": (QPushButton("GBP/JPY"), lambda: self.plotOHLCData("GBPJPY")),
-                        "EUR/JPY": (QPushButton("EUR/JPY"), lambda: self.plotOHLCData("EURJPY"))}
+                        "EUR/JPY": (QPushButton("EUR/JPY"), lambda: self.plotOHLCData("EURJPY")),
+                        "Clear Plot": (QPushButton("Clear Plot"), lambda: self.clearPlot())}
         
         # Initialize layout and add elements to it
         self.setupGUI()
@@ -104,7 +105,10 @@ class GUI(QWidget):
         self.y_value_label_risk = pg.TextItem(text='Volatility', color=(0,255,0), anchor=(1, 0))
         self.main_widgets["risk_chart"].addItem(self.y_value_label_risk, ignoreBounds = True)
 
-        self.main_widgets["main_window"].resize(1300,700)
+        # main window resize
+        self.main_widgets["main_window"].resize(800,600)
+
+
         ####BUTTONS####
         for button in self.buttons:
             self.setupButton(button, self.buttons[button][1])
@@ -232,11 +236,9 @@ class GUI(QWidget):
         ohlc_data = getTimeSeries(symbol, 'DAILY', output = "compact")
         
         if ohlc_data is not None:
-
             # OHLC GRAPH
             # Create a CandlestickItem with the fetched candlestick data
             candlestick_item = CandlestickItem(ohlc_data)
-
             # Add the CandlestickItem to the plot widget
             self.main_widgets["ohlc_chart"].addItem(candlestick_item)
 
@@ -244,6 +246,17 @@ class GUI(QWidget):
             # Extract volatility data and convert 'date' values to numerical
             risk_item = VolatilityItem(ohlc_data)
             self.main_widgets["risk_chart"].addItem(risk_item)
+    
+    def clearPlot(self) -> None:
+        """
+        Clears the plotting widgets
+        """
+        self.main_widgets["ohlc_chart"].clear()
+        self.main_widgets["risk_chart"].clear()
+
+        # Reload y_axis after clearing
+        self.main_widgets["ohlc_chart"].addItem(self.y_value_label_forex, ignoreBounds = True)
+        self.main_widgets["risk_chart"].addItem(self.y_value_label_risk, ignoreBounds = True)
 
     def show(self):
         self.main_widgets["main_window"].show()
