@@ -2,23 +2,48 @@ import pyqtgraph as pg
 from pyqtgraph import QtCore, QtGui
 from datetime import datetime
 import numpy as np
+import statistics as stat
+from PyQt6.QtGui import QColor
 
 def volatility(data):
-  #list of closing prices
-  close_data = [candle["close"] for candle in data]
-  stdev = np.std(close_data)
-  return stdev/close_data[0]
+    #list of closing prices
+    close_data = [candle["close"] for candle in data]
+    stdev = np.std(close_data)
+    return stdev/close_data[0]
+
+def colormap(num, min, max):
+    """
+    This function returns a color mapped to the given number based on its position between the minimum and maximum values.
+    Made for volatility (green = low volatility, red = high volatility)
+    
+    Params:
+        num(int): the number we want to map
+        min(int): minimum of origin interval
+        max(int): maximum of origin interval
+
+    Returns:
+        QColor()
+    """
+    hue_val = int(120 - (num-min)*120/(max-min))
+    return  QColor().fromHsl(hue_val, 128, 128)
   
-def periodic_volatility(data, resolution = 10):
-  close_data = [candle["close"] for candle in data]
-  moving_stdev = [(np.std(close_data[i*resolution:(i+1)*resolution])/data[i]["close"]*100) for i in range(len(close_data))]
-  return moving_stdev
+# def periodic_volatility(data, resolution = 5):
+#     close_data = [candle["close"] for candle in data]
+#     moving_stdev = [stat.stdev(close_data[i:i+resolution]) for i in range(0, (len(close_data)), resolution)]
+#     normalized_stdev = []
+#     for val in moving_stdev:
+#         normalized_stdev += [val]*resolution
+#     return normalized_stdev
+
+def periodic_volatility(data, resolution = 5):
+    close_data = [candle["close"] for candle in data]
+    moving_stdev = [stat.stdev(close_data[i:i+resolution]) for i in range(len(close_data)-resolution)]
+    return moving_stdev
 
 class VolatilityItem(pg.GraphicsObject):
     """
     Class that draws volatility bars in graphs
     """
-
     def __init__(self, data: list):
         """
         Initializes the VolatItem
@@ -32,7 +57,6 @@ class VolatilityItem(pg.GraphicsObject):
         pg.GraphicsObject.__init__(self)
         
         self.data = data
-        self.periodic_volat = periodic_volatility(self.data)
         self.generatePicture()
 
     def generatePicture(self):
@@ -57,26 +81,16 @@ class VolatilityItem(pg.GraphicsObject):
             if possible_width < width:
                 width = possible_width
 
-        # for i in range(len(self.data)):
-        #     stdev_val = self.periodic_volat[i]
-            
-        #     p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0, width, stdev_val))
+        period_volat = periodic_volatility(self.data)
+        for i in range(len(period_volat)):
+            stdev_val = period_volat[i] * 100
 
-        # p.end()
-        for i in range(len(self.data)-1):
-            # (1)
-            volume_val, open_val, close_val = self.periodic_volat[i], self.data[i]['open'], self.data[i]['close']
-            
-            # (2)
-            if close_val > open_val:
-                p.setPen(pg.mkPen('g'))
-                p.setBrush(pg.mkBrush('g'))
-            else:
-                p.setPen(pg.mkPen('r'))
-                p.setBrush(pg.mkBrush('r'))
+            bar_color = colormap(period_volat[i], min(period_volat), max(period_volat))
+            p.setPen(pg.mkPen(bar_color))
+            p.setBrush(pg.mkBrush(bar_color))
 
-            # (3)
-            p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0, width, volume_val))
+            p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0.5, width, stdev_val))
+        p.end()
 
     def paint(self, p, *args):
         p.drawPicture(0, 0, self.picture)
