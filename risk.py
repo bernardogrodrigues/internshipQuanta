@@ -62,7 +62,7 @@ def colormap(num, min, max):
 #         normalized_stdev += [val]*resolution
 #     return normalized_stdev
 
-def periodic_volatility(data, resolution = 5):
+def periodic_volatility(data, resolution = 5): # Try greater resolution number for larger volatility steps
     """
     Periodically calculates the volatility over a specified time period.
     Each candle get its own volatility
@@ -112,21 +112,26 @@ class VolatilityItem(pg.GraphicsObject):
             return
 
         # Calculate bin width based on date values
-        # Get minimum value from 3 iterations to throw away faulty width values (Friday-Monday, holidays, etc)
+        # Get minimum value from 3 iterations to throw away faulty width values
         width = float('inf')
         for i in range(2, -1, -1):
             possible_width = (self.data[i]['date'].timestamp() - self.data[i + 1]['date'].timestamp()) * 0.75
             if possible_width < width:
                 width = possible_width
 
+        # Calculate periodic volatility for data
         period_volat = periodic_volatility(self.data)
-        for i in range(len(period_volat)):
-            stdev_val = period_volat[i] * 100
 
+        # Set up bars and respective colors
+        for i in range(len(period_volat)):
+            stdev_val = period_volat[i] * 100 # [100] for easier readibility (decrease to 1 to have unscalled smaller results, 1:1 with real data)
+
+            # set bar color with colormap
             bar_color = colormap(period_volat[i], min(period_volat), max(period_volat))
             p.setPen(pg.mkPen(bar_color))
             p.setBrush(pg.mkBrush(bar_color))
 
+            # Draw rect
             p.drawRect(QtCore.QRectF(self.data[i]['date'].timestamp() - 0.5 * width, 0, width, stdev_val))
         p.end()
 
